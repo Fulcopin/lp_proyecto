@@ -1,39 +1,108 @@
 import 'package:flutter/material.dart';
-import 'search_screen.dart';
-import 'friend_list_screen.dart';
-import 'receive_messages_screen.dart';
-import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  final String userId;
+  final String token;
+
+  const HomeScreen({
+    Key? key,
+    required this.userId,
+    required this.token,
+  }) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final String currentUserId = '123';
-  late final List<Widget> _screens;
+
+  // Lista de páginas para el dashboard
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    _screens = [
-      SearchScreen(),
-      FriendListScreen(),
-      ReceiveMessagesScreen(userId: currentUserId),
-      ProfileScreen(),
+    _pages = [
+      // Página de búsqueda
+      Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search, size: 100, color: Colors.pink),
+              Text('Buscar Usuarios'),
+            ],
+          ),
+        ),
+      ),
+      // Página de amigos
+      Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people, size: 100, color: Colors.pink),
+              Text('Lista de Amigos'),
+            ],
+          ),
+        ),
+      ),
+      // Página de mensajes
+      Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.message, size: 100, color: Colors.pink),
+              Text('Mensajes'),
+            ],
+          ),
+        ),
+      ),
+      // Página de perfil
+      Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.person, size: 100, color: Colors.pink),
+              Text('Mi Perfil'),
+            ],
+          ),
+        ),
+      ),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      appBar: AppBar(
+        title: Text('Dating App'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              // TODO: Implementar logout
+              Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+        ],
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        selectedItemColor: Theme.of(context).primaryColor,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(

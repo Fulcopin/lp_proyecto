@@ -18,5 +18,6 @@ router.post('/profile',  userController.createOrUpdateProfile);
 // @desc    Obtener el perfil de un usuario por ID
 // @access  Público
 router.get('/profile/:userId', userController.getProfile);
+router.post('/login', userController.loginUser);
 
 module.exports = router;
