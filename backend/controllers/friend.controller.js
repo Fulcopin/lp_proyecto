@@ -1,13 +1,17 @@
 // controllers/friend.controller.js
 const { User, Friend } = require('../models');
 
-// Enviar solicitud de amistad
+// Enviar solicitud
 exports.sendFriendRequest = async (req, res) => {
   try {
     const { friendId } = req.params;
-    const userId = req.user.id; // ID del usuario que envía la solicitud
+    const userId = req.user.id;
 
-    // Verificar si ya existe una relación de amistad
+    // Validar que no sea el mismo usuario
+    if (userId === friendId) {
+      return res.status(400).json({ msg: 'No puedes enviarte solicitud a ti mismo' });
+    }
+
     const existingFriendship = await Friend.findOne({
       where: {
         userId: userId,
@@ -16,22 +20,50 @@ exports.sendFriendRequest = async (req, res) => {
     });
 
     if (existingFriendship) {
-      return res.status(400).json({ msg: 'Friend request already sent or users are already friends' });
+      return res.status(400).json({ msg: 'Ya existe una solicitud pendiente o son amigos' });
     }
 
-    // Crear la solicitud de amistad
     const friendRequest = await Friend.create({
-      userId: userId,
-      friendId: friendId,
+      userId,
+      friendId,
       status: 'pending'
     });
 
-    res.status(201).json({ msg: 'Friend request sent', friendRequest });
+    res.status(201).json({ 
+      msg: 'Solicitud enviada con éxito',
+      friendRequest 
+    });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Send request error:', err);
+    res.status(500).json({ msg: 'Error del servidor' });
   }
 };
+
+// Listar solicitudes pendientes
+exports.getPendingRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const requests = await Friend.findAll({
+      where: {
+        friendId: userId,
+        status: 'pending'
+      },
+      include: [{
+        model: User,
+        as: 'sender',
+        attributes: ['username', 'age', 'location']
+      }]
+    });
+
+    res.json(requests);
+  } catch (err) {
+    console.error('List requests error:', err);
+    res.status(500).json({ msg: 'Error al obtener solicitudes' });
+  }
+};
+
+// ...existing accept and reject code...
 
 // Aceptar solicitud de amistad
 exports.acceptFriendRequest = async (req, res) => {

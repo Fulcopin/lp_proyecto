@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'home_screen.dart';
+import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,12 +12,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _isLoading = false;
-Future<void> _login() async {
+ Future<void> _login() async {
   setState(() => _isLoading = true);
-
   try {
     final response = await http.post(
-      Uri.parse('http://localhost:5000/api/users/login'),
+      Uri.parse('http://127.0.0.1:5000/api/users/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': _emailCtrl.text,
@@ -27,34 +26,25 @@ Future<void> _login() async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      
-      // Ensure userId is String
-      final userId = data['user']['id'].toString();
-      final token = data['token'] as String;
-      
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomeScreen(
-            userId: userId,
-            token: token,
+          builder: (_) => DashboardScreen(
+            userId: data['user']['id'].toString(),
+            token: data['token'],
           ),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${jsonDecode(response.body)['msg']}')),
-      );
     }
   } catch (e) {
+    print('Error: $e');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error de red: $e')),
+      SnackBar(content: Text('Error: $e')),
     );
   } finally {
     setState(() => _isLoading = false);
   }
 }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

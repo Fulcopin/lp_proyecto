@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
 import 'friend_list_screen.dart';
@@ -7,6 +6,15 @@ import 'send_message_screen.dart';
 import 'receive_messages_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
+  final String token;
+  final String userId;  // Add userId parameter
+
+  const DashboardScreen({
+    Key? key,
+    required this.token,
+    required this.userId,  // Add to constructor
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,28 +40,16 @@ class DashboardScreen extends StatelessWidget {
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             children: [
-              // Adrián Salamea Features
-              _buildFeatureCard(
-                context,
-                'Registro',
-                Icons.person_add,
-                Colors.blue,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => RegisterScreen()),
-                ),
-              ),
               _buildFeatureCard(
                 context,
                 'Perfil',
-                Icons.edit,
+                Icons.person,
                 Colors.green,
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => ProfileScreen()),
                 ),
               ),
-              // Fulco Pincay Features
               _buildFeatureCard(
                 context,
                 'Buscar',
@@ -61,7 +57,7 @@ class DashboardScreen extends StatelessWidget {
                 Colors.orange,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => SearchScreen()),
+                  MaterialPageRoute(builder: (_) => SearchScreen(token: token)),
                 ),
               ),
               _buildFeatureCard(
@@ -74,18 +70,6 @@ class DashboardScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => FriendListScreen()),
                 ),
               ),
-              // Pedro Barahona Features
-              _buildFeatureCard(
-                context,
-                'Enviar Mensaje',
-                Icons.send,
-                Colors.red,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SendMessageScreen()),
-                ),
-              ),
-              // ...existing code...
               _buildFeatureCard(
                 context,
                 'Mensajes',
@@ -93,16 +77,20 @@ class DashboardScreen extends StatelessWidget {
                 Colors.teal,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => ReceiveMessagesScreen(userId: '123')),
+                  MaterialPageRoute(
+                    builder: (_) => ReceiveMessagesScreen(userId: userId),
+                  ),
                 ),
               ),
-
             ],
           ),
         ),
       ),
     );
   }
+
+
+
 
   Widget _buildFeatureCard(
     BuildContext context,

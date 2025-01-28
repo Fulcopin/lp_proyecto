@@ -1,51 +1,45 @@
-const { User } = require('../models');
+const { User, Sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 exports.searchUsers = async (req, res) => {
     try {
-        const { age, location, edadMin, edadMax } = req.query;
+        console.log('Consulta de búsqueda:', req.query); // Registro para depurar
+
+        const { location, edadMin, edadMax } = req.query; // Nombres correctos de los parámetros
 
         let whereClause = {};
 
-        if (age) {
-            whereClause.age = age;
-        } else if (edadMin && edadMax) {
-            whereClause.age = { [Op.between]: [edadMin, edadMax] };
+        if (edadMin && edadMax) {
+            const minAge = parseInt(edadMin); // Convertir a entero
+            const maxAge = parseInt(edadMax); // Convertir a entero
+
+            if (isNaN(minAge) || isNaN(maxAge)) {
+                return res.status(400).json({ msg: 'Edad Mínima y Edad Máxima deben ser números.' });
+            }
+
+            whereClause.age = {
+                [Op.between]: [minAge, maxAge]
+            };
         }
 
         if (location) {
-            whereClause.location = { [Op.like]: `%${location}%` };
+            whereClause.location = {
+                [Op.like]: `%${location}%`
+            };
         }
+
+        console.log('Cláusula where:', whereClause); // Registro para depurar
 
         const users = await User.findAll({
             where: whereClause,
-            attributes: ['id', 'username', 'age', 'location', 'description', 'interests', 'photos']
+            attributes: ['id', 'username', 'age', 'location']
         });
 
-        // Si no se encuentran usuarios, devolver un array vacío o un mensaje
-        if (users.length === 0) {
-            return res.status(200).json({ msg: 'No users found matching the criteria', users: [] }); 
-            // También puedes usar 404 si prefieres, pero 200 con un array vacío es común en búsquedas.
-            // return res.status(404).json({ msg: 'No users found matching the criteria' });
-        }
-
-        res.status(200).json(users);
+        console.log('Usuarios encontrados:', users.length); // Registro para depurar
+        res.json(users);
 
     } catch (err) {
-        console.error(err.message);
-
-        // Manejo de errores específicos
-        if (err instanceof Sequelize.ValidationError) {
-            // Error de validación de Sequelize (por ejemplo, datos de entrada incorrectos)
-            return res.status(400).json({ msg: 'Validation error', error: err.message });
-        }
-
-        if (err instanceof Sequelize.ConnectionError) {
-            // Error de conexión a la base de datos
-            return res.status(503).json({ msg: 'Database connection error', error: err.message });
-        }
-
-        // Error genérico del servidor
-        res.status(500).send('Server error');
+        console.error('Error en la búsqueda:', err);
+        res.status(500).json({ msg: 'Error en búsqueda' });
     }
 };

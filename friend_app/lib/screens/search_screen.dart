@@ -1,146 +1,132 @@
 import 'package:flutter/material.dart';
-import '../services/user_service.dart';
-import '../services/friend_service.dart';
-import '../models/user_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../widgets/user_card.dart';
 
 class SearchScreen extends StatefulWidget {
+  final String token;
+
+  const SearchScreen({Key? key, required this.token}) : super(key: key);
+
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _ageController = TextEditingController();
+  RangeValues _ageRange = RangeValues(18, 60);
   final _locationController = TextEditingController();
-  List<User> _users = [];
+  List<dynamic> _users = [];
   bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Buscar Usuarios'),
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor.withOpacity(0.1),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _ageController,
-                        decoration: InputDecoration(
-                          labelText: 'Edad',
-                          prefixIcon: Icon(Icons.calendar_today),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        controller: _locationController,
-                        decoration: InputDecoration(
-                          labelText: 'Ubicación',
-                          prefixIcon: Icon(Icons.location_on),
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _searchUsers,
-                        icon: Icon(Icons.search),
-                        label: Text('Buscar'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.infinity, 50),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: _users.length,
-                        itemBuilder: (context, index) {
-                          final user = _users[index];
-                          return Card(
-                            margin: EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                child: Text(user.username[0].toUpperCase()),
-                                backgroundColor: Theme.of(context).primaryColor,
-                              ),
-                              title: Text(user.username),
-                              subtitle: Text('${user.age} años - ${user.location}'),
-                              trailing: IconButton(
-                                icon: Icon(Icons.person_add),
-                                onPressed: () => _sendFriendRequest(user.id),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _searchUsers() async {
     setState(() => _isLoading = true);
     try {
-      final users = await UserService.searchUsers({
-        'age': _ageController.text,
-        'location': _locationController.text,
-      });
-      setState(() => _users = users);
+      final params = {
+        'location': _locationController.text, // Usa 'location'
+        'edadMin': _ageRange.start.round().toString(),
+        'edadMax': _ageRange.end.round().toString(),
+      };
+
+      print('Search params: $params');
+
+      final uri = Uri.parse('http://127.0.0.1:5000/api/search')
+          .replace(queryParameters: params);
+
+      print('Request URL: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() => _users = List.from(data));
+      } else {
+        // Manejar errores de la API
+        print('Error en la API: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error en la búsqueda: ${response.body}')), // Mostrar mensaje de error del backend
+        );
+      }
     } catch (e) {
+      print('Error de búsqueda: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error de búsqueda: $e')),
       );
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _sendFriendRequest(String userId) async {
-    try {
-      await FriendService.sendFriendRequest(userId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Solicitud enviada')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
-  }
-
   @override
-  void dispose() {
-    _ageController.dispose();
-    _locationController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Buscar Usuarios')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      'Rango de Edad: ${_ageRange.start.round()} - ${_ageRange.end.round()}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    RangeSlider(
+                      values: _ageRange,
+                      min: 18,
+                      max: 60,
+                      divisions: 42,
+                      labels: RangeLabels(
+                        _ageRange.start.round().toString(),
+                        _ageRange.end.round().toString(),
+                      ),
+                      onChanged: (values) => setState(() => _ageRange = values),
+                    ),
+                    TextField(
+                      controller: _locationController,
+                      decoration: InputDecoration(
+                        labelText: 'Ubicación',
+                        prefixIcon: Icon(Icons.location_on),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _searchUsers,
+                      icon: Icon(Icons.search),
+                      label: Text('Buscar'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Expanded(
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      itemCount: _users.length,
+                      itemBuilder: (context, index) {
+                        final user = _users[index];
+                        return UserCard(user: user, token: widget.token);
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
