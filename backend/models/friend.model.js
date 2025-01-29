@@ -1,4 +1,3 @@
-// models/friend.model.js
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 const User = require('./user.model');
@@ -9,22 +8,54 @@ const Friend = sequelize.define('Friend', {
         autoIncrement: true,
         primaryKey: true
     },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
+    },
+    friendId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
+    },
     status: {
         type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
         allowNull: false,
-        defaultValue: 'pending'
+        defaultValue: 'pending',
+        validate: {
+            isIn: [['pending', 'accepted', 'rejected']]
+        }
     }
 }, {
     timestamps: true,
     tableName: 'Friends'
 });
 
-// Definiciones de las relaciones
-User.belongsToMany(User, {
-    as: 'Friends',
-    through: Friend,
+// Relations
+Friend.belongsTo(User, {
     foreignKey: 'userId',
-    otherKey: 'friendId'
+    as: 'sender'
+});
+
+Friend.belongsTo(User, {
+    foreignKey: 'friendId',
+    as: 'receiver'
+});
+
+User.hasMany(Friend, {
+    foreignKey: 'userId',
+    as: 'sentRequests'
+});
+
+User.hasMany(Friend, {
+    foreignKey: 'friendId',
+    as: 'receivedRequests'
 });
 
 module.exports = Friend;

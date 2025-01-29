@@ -1,26 +1,35 @@
-// middleware/auth.middleware.js
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-module.exports = function (req, res, next) {
-    // Obtener el token del header
-    const token = req.header('x-auth-token');
-
-    // Verificar si hay un token
-    if (!token) {
-        // return res.status(401).json({ msg: 'No token, authorization denied' }); // Descomentar cuando se implemente la autenticación
-        console.log("No hay token, pero seguimos porque no hay logica de autenticacion aun")
-        return next()
-    }
-
-    // Verificar el token (simulación - reemplazar con la lógica real)
+exports.verifyToken = (req, res, next) => {
     try {
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET); // Descomentar cuando se implemente la autenticación
-        // req.user = decoded.user; // Descomentar cuando se implemente la autenticación
-        console.log("Token recibido, pero la verificacion esta desactivada temporalmente")
+        // Get token from Authorization header
+        const authHeader = req.header('Authorization');
+        if (!authHeader) {
+            return res.status(401).json({ msg: 'No token proporcionado' });
+        }
+
+        // Extract token without Bearer prefix
+        const token = authHeader.replace('Bearer ', '');
+
+        // Verify token exists
+        if (!token) {
+            return res.status(401).json({ msg: 'Token no encontrado' });
+        }
+
+        // Verify JWT_SECRET exists
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET no configurado');
+            return res.status(500).json({ msg: 'Error de configuración del servidor' });
+        }
+
+        // Verify token and extract user data
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        
         next();
     } catch (err) {
-        // res.status(401).json({ msg: 'Token is not valid' }); // Descomentar cuando se implemente la autenticación
-        console.log("Token invalido, pero seguimos porque no hay logica de autenticacion aun")
-        next()
+        console.error('Auth error:', err);
+        res.status(401).json({ msg: 'Token inválido' });
     }
 };

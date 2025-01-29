@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
 import 'friend_list_screen.dart';
-import 'send_message_screen.dart';
 import 'receive_messages_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final String token;
-  final String userId;  // Add userId parameter
+  final String userId;
 
   const DashboardScreen({
     Key? key,
     required this.token,
-    required this.userId,  // Add to constructor
+    required this.userId,
   }) : super(key: key);
 
   @override
@@ -62,12 +61,12 @@ class DashboardScreen extends StatelessWidget {
               ),
               _buildFeatureCard(
                 context,
-                'Amigos',
-                Icons.people,
-                Colors.purple,
+                'Matches',
+                Icons.favorite,
+                Colors.red,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => FriendListScreen()),
+                  MaterialPageRoute(builder: (_) => FriendListScreen(token: token)),
                 ),
               ),
               _buildFeatureCard(
@@ -88,6 +87,7 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
 
 
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/friend_service.dart';  // Add this import
 
 class UserCard extends StatelessWidget {
   final dynamic user;
@@ -12,38 +13,41 @@ class UserCard extends StatelessWidget {
     required this.token,
   }) : super(key: key);
 
+  Future<void> _sendFriendRequest(BuildContext context) async {
+    try {
+      print('Sending request to user: ${user['id']}');
+      await FriendService.sendFriendRequest(user['id'].toString(), token);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Solicitud enviada'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          child: Text(user['username'][0].toUpperCase()),
-        ),
-        title: Text(user['username']),
+        leading: const CircleAvatar(child: Icon(Icons.person)),
+        title: Text(user['username'] ?? 'Usuario'),
         subtitle: Text('${user['age']} años - ${user['location']}'),
         trailing: IconButton(
-          icon: Icon(Icons.person_add),
-          onPressed: () async {
-            try {
-              final response = await http.post(
-                Uri.parse('http://localhost:5000/api/friends/request/${user['id']}'),
-                headers: {
-                  'Authorization': 'Bearer $token'
-                },
-              );
-
-              if (response.statusCode == 201) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Solicitud enviada')),
-                );
-              }
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: $e')),
-              );
-            }
-          },
+          icon: const Icon(Icons.person_add),
+          onPressed: () => _sendFriendRequest(context),
         ),
       ),
     );
