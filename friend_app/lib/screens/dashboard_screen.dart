@@ -2,130 +2,142 @@ import 'package:flutter/material.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
 import 'friend_list_screen.dart';
-import 'receive_messages_screen.dart';
-
-class DashboardScreen extends StatelessWidget {
+import 'messages_screen.dart';
+class DashboardScreen extends StatefulWidget {
   final String token;
   final String userId;
 
   const DashboardScreen({
-    Key? key,
+    Key? key, 
     required this.token,
     required this.userId,
   }) : super(key: key);
 
   @override
+  _DashboardScreenState createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dating App'),
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor.withOpacity(0.1),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: [
-              _buildFeatureCard(
-                context,
-                'Perfil',
-                Icons.person,
-                Colors.green,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfileScreen()),
-                ),
-              ),
-              _buildFeatureCard(
-                context,
-                'Buscar',
-                Icons.search,
-                Colors.orange,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SearchScreen(token: token)),
-                ),
-              ),
-              _buildFeatureCard(
-                context,
-                'Matches',
-                Icons.favorite,
-                Colors.red,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => FriendListScreen(token: token)),
-                ),
-              ),
-              _buildFeatureCard(
-                context,
-                'Mensajes',
-                Icons.message,
-                Colors.teal,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ReceiveMessagesScreen(userId: userId),
+      body: Row(
+        children: [
+          // Left Sidebar
+          Container(
+            width: 250,
+            color: Theme.of(context).primaryColor,
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Encuentra tu Match',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                _buildMenuItem(
+                  context,
+                  'Perfil',
+                  Icons.person_outline,
+                  0,
+                ),
+                _buildMenuItem(
+                  context,
+                  'Búsqueda',
+                  Icons.search_outlined,
+                  1,
+                ),
+                _buildMenuItem(
+                  context,
+                  'Matches',
+                  Icons.favorite_border,
+                  2,
+                ),
+                _buildMenuItem(
+                  context,
+                  'Mensajes',
+                  Icons.message_outlined,
+                  3,
+                ),
+                Spacer(),
+                _buildMenuItem(
+                  context,
+                  'Cerrar Sesión',
+                  Icons.exit_to_app,
+                  4,
+                ),
+              ],
+            ),
           ),
-        ),
+          // Main Content
+          Expanded(
+            child: Container(
+              color: Colors.grey[100],
+              child: _buildContent(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-
-
-
-
-  Widget _buildFeatureCard(
+  Widget _buildMenuItem(
     BuildContext context,
     String title,
     IconData icon,
-    Color color,
-    VoidCallback onTap,
+    int index,
   ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 48,
-              color: color,
-            ),
-            SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+    final isSelected = _selectedIndex == index;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.white : Colors.white70),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.white70,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
+      onTap: () {
+        if (index == 4) {
+          // Logout
+          Navigator.of(context).pushReplacementNamed('/login');
+          return;
+        }
+        setState(() => _selectedIndex = index);
+      },
+      selected: isSelected,
+      selectedTileColor: Colors.white.withOpacity(0.1),
     );
+  }
+
+  Widget _buildContent() {
+    switch (_selectedIndex) {
+      case 0:
+        return ProfileScreen(userId: widget.userId);
+      case 1:
+        return SearchScreen(token: widget.token);
+      case 2:
+        return FriendListScreen(token: widget.token);
+      case 3:
+        return MessagesScreen(token: widget.token);
+      default:
+        return Center(
+          child: Text(
+            'Bienvenido',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+        );
+    }
   }
 }

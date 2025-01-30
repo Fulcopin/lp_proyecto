@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/friend_service.dart';
 import '../models/friend_request.dart';
 import '../models/user_model.dart';
-
+import '../screens/send_message_screen.dart'; 
 class FriendListScreen extends StatefulWidget {
   final String token;
 
@@ -115,38 +115,45 @@ class _FriendListScreenState extends State<FriendListScreen> with SingleTickerPr
 }
 
   Widget _buildFriendsListTab() {
-    if (_isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return RefreshIndicator(
-      onRefresh: _loadFriendsData,
-      child: _friends.isEmpty
-          ? Center(child: Text('No tienes amigos aún'))
-          : ListView.builder(
-              itemCount: _friends.length,
-              itemBuilder: (context, index) {
-                final friend = _friends[index];
-                return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text(friend.username[0].toUpperCase()),
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
-                    title: Text(friend.username),
-                    subtitle: Text('${friend.age} años - ${friend.location}'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.message),
-                      onPressed: () {
-                        // Navigate to chat screen
-                      },
+  if (_isLoading) {
+    return Center(child: CircularProgressIndicator());
+  }
+  return RefreshIndicator(
+    onRefresh: _loadFriendsData,
+    child: _friends.isEmpty
+        ? Center(child: Text('No tienes amigos aún'))
+        : ListView.builder(
+            itemCount: _friends.length,
+            itemBuilder: (context, index) {
+              final friend = _friends[index];
+              return Card(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    child: Text(friend.username[0].toUpperCase()),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                  title: Text(friend.username),
+                  subtitle: Text('${friend.age} años - ${friend.location}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.message, color: Colors.blue),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SendMessageScreen(
+                          token: widget.token,
+                          receiverId: friend.id,
+                          receiverName: friend.username,
+                        ),
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-    );
-  }
+                ),
+              );
+            },
+          ),
+  );
+}
 
 Future<void> _respondToRequest(String requestId, bool accept) async {
     try {

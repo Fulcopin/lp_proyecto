@@ -1,13 +1,12 @@
-// routes/message.routes.js
 const express = require('express');
 const router = express.Router();
+const { verifyToken } = require('../middleware/auth.middleware');
 const messageController = require('../controllers/message.controller');
-// const authMiddleware = require('../middleware/auth.middleware'); // Ya no se necesita aquí
 
-router.post('/', messageController.sendMessage); // Sin authMiddleware
-router.get('/received/:userId', messageController.getReceivedMessagesByParam); // Sin authMiddleware
-router.get('/sent', messageController.getSentMessages); // Sin authMiddleware
-router.get('/history/:otherUserId', messageController.getMessageHistory); // Sin authMiddleware
-router.put('/read/:messageId', messageController.markAsRead); // Sin authMiddleware
+router.post('/send', verifyToken, messageController.sendMessage);
+router.get('/received', verifyToken, messageController.getReceivedMessages);
+router.get('/sent', verifyToken, messageController.getSentMessages);
+router.get('/history/:otherUserId', verifyToken, messageController.getMessageHistory);
+router.put('/:messageId/read', verifyToken, messageController.markAsRead);
 
 module.exports = router;

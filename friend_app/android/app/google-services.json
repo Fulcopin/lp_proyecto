@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "844953258319",
+    "firebase_url": "https://proyect-lp-default-rtdb.firebaseio.com",
+    "project_id": "proyect-lp",
+    "storage_bucket": "proyect-lp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844953258319:android:793d670e7de66a5b595d3a",
+        "android_client_info": {
+          "package_name": "com.example.friend_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCamtfbDUV9XRDxotI1YI82GQ-uZsytCd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

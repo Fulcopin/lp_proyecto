@@ -56,30 +56,89 @@ exports.registerUser = async (req, res) => {
 // Crear o actualizar perfil de usuario
 exports.createOrUpdateProfile = async (req, res) => {
   try {
-      const { interests, photos, description, userId } = req.body; // Obtener userId del cuerpo de la solicitud (para pruebas sin autenticación)
+    // Log full request details
+    console.log('=== Profile Update Request ===');
+    console.log('URL Parameters:', req.params);
+    console.log('Request Body:', req.body);
+    console.log('Request Headers:', req.headers);
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request Method:', req.method);
+    
+    const { interests, description } = req.body;
+    const { userId } = req.params;
 
-      // Buscar al usuario por el userId proporcionado en el request
-      const user = await User.findByPk(userId);
+    console.log('Processing update for userId:', userId);
 
-      if (!user) {
-          return res.status(404).json({ msg: 'User not found' });
-      }
+    // Validate userId with type check
+    if (!userId) {
+      console.log('Missing userId in request');
+      return res.status(400).json({
+        success: false,
+        msg: 'User ID is required'
+      });
+    }
 
-      // Actualizar los campos del perfil
-      user.interests = interests || user.interests;
-      user.photos = photos || user.photos;
-      user.description = description || user.description;
+    // Find user with error details
+    console.log('Attempting to find user:', userId);
+    let user;
+    try {
+      user = await User.findByPk(userId);
+      console.log('Database query result:', user ? 'User found' : 'User not found');
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      throw dbError;
+    }
+    
+    if (!user) {
+      console.log('User not found for ID:', userId);
+      return res.status(404).json({
+        success: false,
+        msg: 'Usuario no encontrado',
+        requestedId: userId
+      });
+    }
 
-      // Guardar los cambios
+    // Log current user state
+    console.log('Current user state:', user.toJSON());
+
+    // Update fields with validation
+    if (interests) {
+      console.log('Updating interests from:', user.interests, 'to:', interests);
+      user.interests = interests;
+    }
+    
+    if (description) {
+      console.log('Updating description from:', user.description, 'to:', description);
+      user.description = description;
+    }
+
+    // Save with detailed error handling
+    try {
       await user.save();
+      console.log('Save successful - Updated user:', user.toJSON());
+    } catch (saveError) {
+      console.error('Save failed:', saveError);
+      throw saveError;
+    }
 
-      res.status(200).json({ msg: 'Profile updated successfully', user });
+    // Send success response
+    return res.status(200).json({
+      success: true,
+      user: user.toJSON()
+    });
+
   } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server error');
+    console.error('=== Profile Update Error ===');
+    console.error('Error:', err);
+    console.error('Stack:', err.stack);
+    return res.status(500).json({
+      success: false,
+      error: 'Error del servidor',
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
-
 // Obtener el perfil de un usuario por ID
 exports.getProfile = async(req, res) => {
     try {

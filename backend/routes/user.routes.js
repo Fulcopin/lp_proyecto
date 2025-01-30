@@ -12,8 +12,8 @@ router.post('/register', userController.registerUser);
 // @route   POST api/users/profile
 // @desc    Crear o actualizar el perfil de un usuario
 // @access  Privado (requiere autenticación)
-router.post('/profile',  userController.createOrUpdateProfile);
 
+router.put('/profile/:userId', userController.createOrUpdateProfile);
 // @route   GET api/users/profile/:userId
 // @desc    Obtener el perfil de un usuario por ID
 // @access  Público

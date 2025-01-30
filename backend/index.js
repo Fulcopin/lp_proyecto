@@ -33,7 +33,7 @@ authenticateDB()
         app.use('/api/users', require('./routes/user.routes'));
         app.use('/api/search', require('./routes/search.routes'));
         app.use('/api/friends', require('./routes/friend.routes'));
-        
+        app.use('/api/messages', require('./routes/message.routes'));
         const PORT = 5000;
         app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
     })

@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import '../services/message_service.dart';
-
 class SendMessageScreen extends StatefulWidget {
+  final String token;
+  final int receiverId;
+  final String receiverName;
+
+  const SendMessageScreen({
+    Key? key, 
+    required this.token,
+    required this.receiverId,
+    required this.receiverName,
+  }) : super(key: key);
+
   @override
   _SendMessageScreenState createState() => _SendMessageScreenState();
 }
 
 class _SendMessageScreenState extends State<SendMessageScreen> {
-  final _receiverIdController = TextEditingController();
   final _messageController = TextEditingController();
   bool _isLoading = false;
 
@@ -15,7 +24,7 @@ class _SendMessageScreenState extends State<SendMessageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Enviar Mensaje'),
+        title: Text('Mensaje para ${widget.receiverName}'),
         elevation: 0,
       ),
       body: Container(
@@ -43,17 +52,15 @@ class _SendMessageScreenState extends State<SendMessageScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      TextField(
-                        controller: _receiverIdController,
-                        decoration: InputDecoration(
-                          labelText: 'ID del Destinatario',
-                          prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                      ListTile(
+                        leading: CircleAvatar(
+                          child: Text(widget.receiverName[0].toUpperCase()),
+                          backgroundColor: Theme.of(context).primaryColor,
                         ),
+                        title: Text(widget.receiverName),
+                        subtitle: Text('ID: ${widget.receiverId}'),
                       ),
-                      SizedBox(height: 16),
+                      Divider(),
                       TextField(
                         controller: _messageController,
                         decoration: InputDecoration(
@@ -92,9 +99,9 @@ class _SendMessageScreenState extends State<SendMessageScreen> {
   }
 
   Future<void> _sendMessage() async {
-    if (_receiverIdController.text.isEmpty || _messageController.text.isEmpty) {
+    if (_messageController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor complete todos los campos')),
+        SnackBar(content: Text('Por favor escribe un mensaje')),
       );
       return;
     }
@@ -102,9 +109,11 @@ class _SendMessageScreenState extends State<SendMessageScreen> {
     setState(() => _isLoading = true);
     try {
       await MessageService.sendMessage(
-        _receiverIdController.text,
+        widget.token,
+        widget.receiverId,
         _messageController.text,
       );
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -126,7 +135,6 @@ class _SendMessageScreenState extends State<SendMessageScreen> {
 
   @override
   void dispose() {
-    _receiverIdController.dispose();
     _messageController.dispose();
     super.dispose();
   }

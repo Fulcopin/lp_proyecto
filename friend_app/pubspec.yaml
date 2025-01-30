@@ -13,12 +13,22 @@ dependencies:
   http: ^0.13.3
   cupertino_icons: ^1.0.8
   flutter_spinkit: ^5.2.1
-
+  firebase_core: ^2.25.4
+  firebase_storage: ^11.6.6
+  firebase_database: ^10.4.5
+  cloudinary_public: ^0.23.1
+  cloud_firestore: ^4.15.5
+  firebase_auth: ^4.17.4
+  dio: ^5.4.0
+  image_picker: ^1.0.7
+  cached_network_image: ^3.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  http_mock_adapter: ^0.2.0
-  mockito: ^5.0.16
+  http_mock_adapter: ^0.6.1 
+  mockito: ^5.4.4
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/default_profile.jpg
